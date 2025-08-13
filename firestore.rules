@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /clickstream/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    // Allow read access to all other documents (e.g., for general content)
+    match /{document=**} {
+      allow read: if true;
+    }
+  }
+}

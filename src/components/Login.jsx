@@ -1,30 +1,31 @@
 import React, { useState } from 'react';
-import { auth } from '../firebase-config';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { trackEvent } from '../utils/trackEvent';
+import { auth } from '../firebase';
+import { useNavigate } from 'react-router-dom';
+import trackEvent from '../utils/trackEvent';
 
-function Login() {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      trackEvent('login_success', { email: email });
-      alert('Login successful!');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      trackEvent('login_success', { userEmail: email }, userCredential.user.uid);
+      navigate('/');
     } catch (err) {
       setError(err.message);
-      trackEvent('login_fail', { email: email, error: err.message });
+      trackEvent('login_failure', { userEmail: email, errorMessage: err.message });
     }
   };
 
   return (
     <div>
       <h2>Login</h2>
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleSubmit}>
         <div>
           <label>Email:</label>
           <input
@@ -48,6 +49,6 @@ function Login() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
-}
+};
 
 export default Login;

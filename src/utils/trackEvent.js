@@ -1,21 +1,18 @@
-import { db, auth } from '../firebase-config';
+import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
-const trackEvent = async (eventType, eventData = {}) => {
+const trackEvent = async (eventName, properties = {}, userId = null) => {
   try {
-    const user = auth.currentUser;
-    const userId = user ? user.uid : 'anonymous';
-
     await addDoc(collection(db, 'clickstream'), {
-      userId: userId,
-      eventType: eventType,
+      eventName,
       timestamp: serverTimestamp(),
-      ...eventData,
+      userId,
+      ...properties,
     });
-    console.log(`Event ${eventType} tracked successfully.`);
+    console.log(`Event "${eventName}" tracked successfully.`);
   } catch (e) {
     console.error("Error tracking event: ", e);
   }
 };
 
-export { trackEvent };
+export default trackEvent;

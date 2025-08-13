@@ -1,30 +1,31 @@
 import React, { useState } from 'react';
-import { auth } from '../firebase-config';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { trackEvent } from '../utils/trackEvent';
+import { auth } from '../firebase';
+import { useNavigate } from 'react-router-dom';
+import trackEvent from '../utils/trackEvent';
 
-function Register() {
+const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      trackEvent('register_success', { email: email });
-      alert('Registration successful!');
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      trackEvent('register_success', { userEmail: email }, userCredential.user.uid);
+      navigate('/');
     } catch (err) {
       setError(err.message);
-      trackEvent('register_fail', { email: email, error: err.message });
+      trackEvent('register_failure', { userEmail: email, errorMessage: err.message });
     }
   };
 
   return (
     <div>
       <h2>Register</h2>
-      <form onSubmit={handleRegister}>
+      <form onSubmit={handleSubmit}>
         <div>
           <label>Email:</label>
           <input
@@ -48,6 +49,6 @@ function Register() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
-}
+};
 
 export default Register;
